@@ -5,3 +5,12 @@ import { contractApi } from "./near";
  */
 export const get_greeting = () =>
   contractApi.view<object, string>("get_greeting");
+
+/**
+ * Send greeting
+ */
+interface SendGreeting {
+  greeting: string;
+}
+export const set_greeting = (args: SendGreeting) =>
+  contractApi.call<SendGreeting, string>("set_greeting", { args });

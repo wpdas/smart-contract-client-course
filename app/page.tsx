@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { get_greeting } from "@/services/contract";
-import { Box, Button, Heading, Input, VStack } from "@chakra-ui/react";
+import { Box, Heading, HStack, Input, VStack } from "@chakra-ui/react";
+import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/useWallet";
+import { walletApi } from "@/services/near";
 
 export default function Home() {
-  const [greeting, setGreeting] = useState("...");
-  const { isSignedIn } = useWallet();
+  const [greeting, setGreeting] = useState("");
+  const { isSignedIn, isWalletReady } = useWallet();
 
   useEffect(() => {
     const fetchGreeting = async () => {
@@ -19,41 +21,67 @@ export default function Home() {
 
     const interval = setInterval(() => {
       fetchGreeting();
-      console.log("Fetching greeting");
-    }, 1000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <Box textAlign="center" fontSize="xl" pt="30vh">
+    <Box textAlign="center" fontSize="xl">
+      <HStack
+        w="100%"
+        justifyContent="flex-end"
+        backgroundColor="blue.600"
+        p={4}
+        boxShadow="md"
+        mb="10vh"
+      >
+        {!isSignedIn ? (
+          <Button
+            p={4}
+            size="md"
+            colorScheme="blue"
+            onClick={() => walletApi.signInModal()}
+            opacity={!isWalletReady ? 0 : 1}
+          >
+            Connect Wallet
+          </Button>
+        ) : (
+          <Button
+            p={4}
+            size="md"
+            colorPalette="blue"
+            variant="subtle"
+            onClick={() => walletApi.wallet?.signOut()}
+            opacity={!isWalletReady ? 0 : 1}
+          >
+            Disconnect Wallet
+          </Button>
+        )}
+      </HStack>
+
       <VStack gap="8">
         <Heading size="2xl" letterSpacing="tight">
-          Greeting: {greeting}
+          {greeting ? `Greeting: "${greeting}"` : "loading..."}
         </Heading>
 
-        <Box width="100%" height="1px" bg="gray.200" />
+        <Box width="100%" height="1px" bg="blue.200" opacity={0.1} />
 
         <VStack maxWidth="500px" width="100%">
           {isSignedIn && (
-            <>
-              <Input placeholder="Enter a new greeting" size="lg" p={4} />
-              <Button p={4} size="lg" colorScheme="blue">
-                Set Greeting
+            <HStack gap="2" w="100%">
+              <Input
+                colorPalette="blue"
+                placeholder="Enter a new greeting"
+                size="lg"
+                p={4}
+                w="100%"
+              />
+              <Button p={4} size="md" colorPalette="blue" variant="outline">
+                Send
               </Button>
-            </>
+            </HStack>
           )}
-
-          {/* {!isSignedIn && (
-            <Button
-              p={4}
-              size="lg"
-              colorScheme="blue"
-              onClick={() => walletApi.signInModal()}
-            >
-              Connect Wallet to set greeting
-            </Button>
-          )} */}
         </VStack>
       </VStack>
     </Box>
